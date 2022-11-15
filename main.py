@@ -4,7 +4,7 @@ import numpy
 import noise_generator
 
 
-TIME_RESOLUTION_S = 0.25
+TIME_RESOLUTION_S = 1 / 250
 END_TIME_S = 60
 
 
