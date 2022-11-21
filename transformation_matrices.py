@@ -16,6 +16,13 @@ ROTATION_MATRIX_BASE_TO_WORLD = sympy.Matrix([[sympy.cos(yaw) * sympy.cos(pitch)
                                                sympy.cos(pitch) * sympy.cos(roll)]])
 
 
+def get_instantaneous_rotation_matrix(state):
+    rotate_base_to_world_matrix = ROTATION_MATRIX_BASE_TO_WORLD.subs([(yaw, state.yaw),
+                                                                      (pitch, state.pitch),
+                                                                      (roll, state.roll)])
+    return rotate_base_to_world_matrix
+
+
 def get_position_in_world_from_base_frame(state, point):
     rotate_base_to_world_matrix = ROTATION_MATRIX_BASE_TO_WORLD.subs([(yaw, state.yaw),
                                                                        (pitch, state.pitch),
