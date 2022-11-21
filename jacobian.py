@@ -9,6 +9,12 @@ import transformation_matrices
 q1, q2, q3, q4, q5 = sympy.symbols("q1, q2, q3, q4, q5")
 GENERIC_JACOBIAN = sympy.Matrix((6, 6)) # TODO - create this based on properties of the arm
 
+# D-H parameters for manipulator arm, from Arleo et al: Control of Quadrotor Aerial Vehicles Equipped with a Robotic Arm
+THETAS = [q1, q2, q3, q4, q5]
+DS = [0, 0, 0, 0, 18]
+ALPHAS = [-numpy.pi/2, numpy.pi/2, 0, -numpy.pi/2, 0]
+AS = [0, 150, 80, 0, 0]
+
 
 def _generate_skew_matrix(a):
     skew_matrix = numpy.matrix([[0, -a[2, 0], a[1, 0]],
@@ -86,6 +92,106 @@ def get_end_effector_velocity(state, end_effector_position, arm_state):
     return end_effector_velocity
 
 
+# Generates a list of transformation matrices from the base_link to each frame N of the manipulator arm.
+# Adapted from a previous project for Robotic Control
+def transformation_matrix(a, alpha, d, theta):
+    one_step_transforms = []  # Will store matrix from T0_n frames
+    A = numpy.identity(4)
+    dh_table = numpy.array([[a[0], alpha[0], d[0], theta[0]],
+                         [a[1], alpha[1], d[1], theta[1]],
+                         [a[2], alpha[2], d[2], theta[2]],
+                         [a[3], alpha[3], d[3], theta[3]],
+                         [a[4], alpha[4], d[4], theta[4]],
+                         [a[5], alpha[5], d[5], theta[5]],
+                         [a[6], alpha[6], d[6], theta[6]],
+                         [a[7], alpha[7], d[7], theta[7]],
+                         [a[8], alpha[8], d[8], theta[8]],
+                         [a[9], alpha[9], d[9], theta[9]],
+                         [a[10], alpha[10], d[10], theta[10]],
+                         [a[11], alpha[11], d[11], theta[11]],
+                         [a[12], alpha[12], d[12], theta[12]]])
+
+    for i in range(0, len(dh_table)):
+        T = sympy.Matrix([[sympy.cos(dh_table[i, 3]), -sympy.sin(dh_table[i, 3]) * sympy.cos(dh_table[i, 1]),
+                           sympy.sin(dh_table[i, 3]) * sympy.sin(dh_table[i, 1]),
+                           dh_table[i, 0] * sympy.cos(dh_table[i, 3])],
+                          [sympy.sin(dh_table[i, 3]), sympy.cos(dh_table[i, 3]) * sympy.cos(dh_table[i, 1]), -sympy.cos(
+                              dh_table[i, 3]) * sympy.sin(dh_table[i, 1]), dh_table[i, 0] * sympy.sin(dh_table[i, 3])],
+                          [0, sympy.sin(dh_table[i, 1]), sympy.cos(
+                              dh_table[i, 1]), dh_table[i, 2]],
+                          [0, 0, 0, 1]])
+
+        A = A @ T
+
+        one_step_transforms.append(T)
+        # with np.printoptions(precision=2, suppress=True):
+        #    print(A)
+
+    A = numpy.identity(4)
+    matrix_list = []
+    A = A @ one_step_transforms[0]
+    matrix_list.append(A)  # Appending transform to frame 1
+    A = A @ one_step_transforms[1]
+    matrix_list.append(A)  # Appending transform to frame 2
+    A = A @ one_step_transforms[2]
+    A = A @ one_step_transforms[3]
+    A = A @ one_step_transforms[4]
+    matrix_list.append(A)  # Appending transform to frame 3
+    A = A @ one_step_transforms[5]
+    A = A @ one_step_transforms[6]
+    A = A @ one_step_transforms[7]
+    matrix_list.append(A)
+    A = A @ one_step_transforms[8]
+    A = A @ one_step_transforms[9]
+    A = A @ one_step_transforms[10]
+    matrix_list.append(A)
+    A = A @ one_step_transforms[11]
+    A = A @ one_step_transforms[12]
+    matrix_list.append(A)
+
+    return matrix_list
+
+
+def generate_generic_jacobian(ts):
+    global GENERIC_JACOBIAN
+
+    j1 = sympy.zeros(6, 1)
+    j1[0:3, 0] = sympy.Matrix([[0], [0], [1]]).cross(ts[-1][0:3, 3] - sympy.Matrix([[0], [0], [0]]))
+    j1[3:6, 0] = sympy.Matrix([[0], [0], [1]])
+
+    j2 = sympy.zeros(6, 1)
+    j2[0:3, 0] = ts[0][0:3, 2].cross(ts[-1][0:3, 3] - ts[0][0:3, 3])
+    j2[3:6, 0] = ts[0][0:3, 2]
+
+    j3 = sympy.zeros(6, 1)
+    j3[0:3, 0] = ts[1][0:3, 2].cross(ts[-1][0:3, 3] - ts[1][0:3, 3])
+    j3[3:6, 0] = ts[1][0:3, 2]
+
+    j4 = sympy.zeros(6, 1)
+    j4[0:3, 0] = ts[2][0:3, 2].cross(ts[-1][0:3, 3] - ts[2][0:3, 3])
+    j4[3:6, 0] = ts[2][0:3, 2]
+
+    j5 = sympy.zeros(6, 1)
+    j5[0:3, 0] = ts[3][0:3, 2].cross(ts[-1][0:3, 3] - ts[3][0:3, 3])
+    j5[3:6, 0] = ts[3][0:3, 2]
+
+    j6 = sympy.zeros(6, 1)
+    j6[0:3, 0] = ts[4][0:3, 2].cross(ts[-1][0:3, 3] - ts[4][0:3, 3])
+    j6[3:6, 0] = ts[4][0:3, 2]
+
+    GENERIC_JACOBIAN = sympy.zeros(6, 6)
+    GENERIC_JACOBIAN[:, 0] = j1
+    GENERIC_JACOBIAN[:, 1] = j2
+    GENERIC_JACOBIAN[:, 2] = j3
+    GENERIC_JACOBIAN[:, 3] = j4
+    GENERIC_JACOBIAN[:, 4] = j5
+    GENERIC_JACOBIAN[:, 5] = j6
+
+
+T0_n = transformation_matrix(AS, ALPHAS, DS, THETAS)
+generate_generic_jacobian(T0_n)
+
+
 if __name__ == '__main__':
-    n = numpy.matrix([[1], [2], [3]])
-    print(_generate_skew_matrix(n))
+    # TODO - write test cases to verify the Jacobian
+    pass
