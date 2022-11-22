@@ -15,6 +15,10 @@ ROTATION_MATRIX_BASE_TO_WORLD = sympy.Matrix([[sympy.cos(yaw) * sympy.cos(pitch)
                                                sympy.cos(pitch) * sympy.sin(roll),
                                                sympy.cos(pitch) * sympy.cos(roll)]])
 
+TRANSFORM_MAT_EULER_TO_ANG_VEL = sympy.Matrix([[0, -sympy.sin(yaw), sympy.cos(yaw)*sympy.cos(pitch)],
+                                               [0, sympy.cos(yaw), sympy.sin(yaw)*sympy.cos(pitch)],
+                                               [1, 0, -sympy.sin(pitch)]])
+
 
 def get_instantaneous_rotation_matrix(state):
     rotate_base_to_world_matrix = ROTATION_MATRIX_BASE_TO_WORLD.subs([(yaw, state.yaw),
@@ -58,3 +62,10 @@ def get_angular_velocity_in_world_from_base(state, point_rotational_vel):
     output_rotational_vel = base_rotational_velocity + rotate_base_to_world_matrix * point_rotational_vel
 
     return output_rotational_vel
+
+
+def get_angular_velocity_transformation_matrix(state):
+    transform_euler_angle_deriv_to_angular_velocity = TRANSFORM_MAT_EULER_TO_ANG_VEL.subs([(yaw, state.yaw),
+                                                                                           (pitch, state.pitch),
+                                                                                           roll, state.roll])
+    return transform_euler_angle_deriv_to_angular_velocity

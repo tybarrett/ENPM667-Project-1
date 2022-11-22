@@ -1,8 +1,8 @@
 + Generate Jacobian from DH parameters
 + determine motor forces required from the provided torques and force in the Z direction
   + "Quadrotor inputs"
-- determine rotational torque required from desired roll and pitch control
-  - "Quadrotor Attitude Controller"
++ determine rotational torque required from desired roll and pitch control
+  + "Quadrotor Attitude Controller"
 - determine roll and pitch from desired position control
   - "Quadrotor position controller"
 - conduct inverse kinematics
@@ -17,3 +17,6 @@
   - state
   - the derivative of the state
   - the second derivative of the uncontrollable variables (roll and pitch)
+- visualize results
++ generate reference trajectory
+- emulate vehicle motion (in response to our provided input)
