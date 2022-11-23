@@ -22,3 +22,16 @@ class SystemState:
         self.rotational_velocity_pitch = 0
         self.rotational_velocity_roll = 0
         self.joint_velocities = []
+
+        # Second derivative
+        self.ax = 0
+        self.ay = 0
+        self.az = 0
+        self.rot_accel_yaw = 0
+        self.rot_accel_pitch = 0
+        self.rot_accel_roll = 0
+        self.joint_accelerations = []
+
+
+    def populate_derivative_from_history(self):
+        pass # TODO

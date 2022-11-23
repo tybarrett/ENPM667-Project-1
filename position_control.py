@@ -3,12 +3,16 @@
 import numpy
 
 
-def calculate_thrust_and_reference_angles(state, position_control, yaw_control, manipulator_link_control, gravity, inertia_matrix):
+def calculate_thrust_and_reference_angles(state, controllable_vars_input, gravity, inertia_matrix):
 
     m_p_p = inertia_matrix[0:3, 0:3]
     m_p_phi = inertia_matrix[0:3, 3:6]
     m_p_phi = m_p_phi[:, 0]
     m_p_q = inertia_matrix[0:3, 6:]
+
+    position_control = controllable_vars_input[:3, :]
+    yaw_control = controllable_vars_input[3, :]
+    manipulator_link_control = controllable_vars_input[4:, :]
 
     # TODO - integrate coriolis forces into this equation
     # TODO - integrate disturbances (d-hat) into this equation too

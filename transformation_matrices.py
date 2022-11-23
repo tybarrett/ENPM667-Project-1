@@ -1,6 +1,8 @@
 """transformation_matrices.py - contains functions to express data in the world reference frame."""
 
 import sympy
+import jacobian
+import numpy
 
 
 yaw, pitch, roll, robot_x, robot_y, robot_z = sympy.symbols("yaw, pitch, roll, robot_x, robot_y, robot_z")
@@ -69,3 +71,10 @@ def get_angular_velocity_transformation_matrix(state):
                                                                                            (pitch, state.pitch),
                                                                                            roll, state.roll])
     return transform_euler_angle_deriv_to_angular_velocity
+
+
+def get_ee_position(state):
+    ee_to_base_transform_matrix = jacobian.T0_n[-1]
+    ee_position_in_base_frame = ee_to_base_transform_matrix * numpy.Matrix([[0], [0], [0]])
+    ee_position_in_world_frame = get_position_in_world_from_base_frame(state, ee_position_in_base_frame)
+    return ee_position_in_world_frame

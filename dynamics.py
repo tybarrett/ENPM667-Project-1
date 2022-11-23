@@ -2,6 +2,7 @@
 
 
 import numpy
+import jacobian
 
 
 MOTOR_OFFSET_DISTANCE_M = 0.25
@@ -22,7 +23,10 @@ def create_base_link_input_forces_from_motor_forces(motor_forces):
     return body_forces
 
 
-def create_motor_forces_from_desired_torque_and_thrust(desired_forces):
+def create_motor_forces_from_desired_torque_and_thrust(rotational_torques, thrust):
+    desired_forces = numpy.Matrix((4, 1))
+    desired_forces[0, :] = thrust
+    desired_forces[1:, :] = rotational_torques
     motor_input_to_body_forces = numpy.Matrix([[1, 1, 1, 1],
                                                [0, MOTOR_OFFSET_DISTANCE_M, 0, -MOTOR_OFFSET_DISTANCE_M],
                                                [-MOTOR_OFFSET_DISTANCE_M, 0, MOTOR_OFFSET_DISTANCE_M, 0],

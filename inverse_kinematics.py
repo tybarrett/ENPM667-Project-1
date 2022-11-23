@@ -7,9 +7,15 @@ import numpy
 import math
 
 
-def generate_controllable_variable_accelerations(state, end_effector_position, controlled_vars_deriv,
-                                                 uncontrolled_vars_deriv, uncontrolled_vars_accel, desired_ee_position,
+def generate_controllable_variable_accelerations(state, end_effector_position, desired_ee_position,
                                                  desired_ee_rotation, desired_ee_velocity, desired_ee_accel):
+    controlled_vars_deriv = numpy.Matrix((9, 1))
+    controlled_vars_deriv[0:4, :] = numpy.Matrix([[state.vx], [state.vy], [state.vz], [state.rotational_velocity_yaw]])
+    controlled_vars_deriv[4:, :] = numpy.Matrix(state.joint_velocities).transpose()
+
+    uncontrolled_vars_deriv = numpy.Matrix([[state.rotational_velocity_pitch], [state.rotational_velocity_roll]])
+    uncontrolled_vars_accel = numpy.Matrix([[state.rot_accel_pitch], [state.rot_accel_roll]])
+
     # The jacobian of controllable variables
     controllable_jac = jacobian.get_jacobian_of_controllable_variables(state.joint_positions, state, end_effector_position)
 
