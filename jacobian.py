@@ -17,7 +17,7 @@ AS = [0, 150, 80, 0, 0]
 
 
 def _generate_skew_matrix(a):
-    skew_matrix = numpy.Matrix([[0, -a[2, 0], a[1, 0]],
+    skew_matrix = numpy.array([[0, -a[2, 0], a[1, 0]],
                                 [a[2, 0], 0, -a[0, 0]],
                                 [-a[1, 0], a[0, 0], 0]])
     return skew_matrix
@@ -85,8 +85,8 @@ def get_end_effector_velocity(state, end_effector_position, arm_state):
     j_epsilon[:, -6:] = j_eb
     j_epsilon[:, :4] = j_nu
 
-    controllable_variable_velocities = numpy.matrix([[state.vx], [state.vy], [state.vz], [state.vyaw]])
-    uncontrollable_variable_velocities = numpy.matrix([[state.vpitch], [state.vroll]])
+    controllable_variable_velocities = numpy.array([[state.vx], [state.vy], [state.vz], [state.vyaw]])
+    uncontrollable_variable_velocities = numpy.array([[state.vpitch], [state.vroll]])
     end_effector_velocity = j_epsilon * controllable_variable_velocities + j_sigma * uncontrollable_variable_velocities
 
     return end_effector_velocity
@@ -194,7 +194,7 @@ def get_jacobian_of_controllable_variables(arm_state, state, end_effector_positi
     j_b[0:3, 3:6] = -1 * skew_matrix
     j_n = (j_b * transformation_matrices.get_angular_velocity_transformation_matrix(state))[:, 0:4]
 
-    controllable_jacobian = numpy.Matrix((6, 9))
+    controllable_jacobian = numpy.array((6, 9))
     controllable_jacobian[:, 0:4] = j_n
     controllable_jacobian[:, 4:] = j_eb
 
@@ -209,7 +209,7 @@ def get_jacobian_of_uncontrolled_variables(state, end_effector_position):
     j_b[0:3, 3:6] = -1 * skew_matrix
     j_b_t_a = j_b * transformation_matrices.get_angular_velocity_transformation_matrix(state)
 
-    uncontrollable_jacobian = numpy.Matrix((6, 2))
+    uncontrollable_jacobian = numpy.array((6, 2))
     uncontrollable_jacobian[:, :] = j_b_t_a[:, -2:]
 
     return uncontrollable_jacobian

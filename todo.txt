@@ -31,3 +31,5 @@
 
 + finish motion_control.calculate_control_inputs
 - plot desired path vs actual path using matplotlib
+  + desired path
+  - actual path

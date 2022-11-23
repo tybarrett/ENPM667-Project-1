@@ -12,6 +12,7 @@ import motion_control
 import dynamics
 import manipulator_control
 import system_emulator
+import visualization
 
 
 TIME_RESOLUTION_S = 1 / 250
@@ -46,7 +47,7 @@ def main():
                                                                                                  pitch, pitch_deriv,
                                                                                                  state)
 
-        rotational_control_input = numpy.Matrix([[yaw_control_input], [pitch_control], [roll_control]])
+        rotational_control_input = numpy.array([[yaw_control_input], [pitch_control], [roll_control]])
         vehicle_torques = attitude_control.calculate_vehicle_torques(inertia_matrix, pos_control_input, rotational_control_input,
                                                    link_control_input, g, coriolis_matrix, state)
 
@@ -60,7 +61,11 @@ def main():
 
         state = new_state
 
+        visualization.plot_desired_point(desired_pos)
+
         t += TIME_RESOLUTION_S
+
+    visualization.show_plot()
 
 
 if __name__ == '__main__':

@@ -30,14 +30,14 @@ def calculate_vehicle_torques(inertia_matrix, position_controls, rotational_cont
 
     g_phi = g[3:6, :]
 
-    state_deriv_matrix = numpy.Matrix((9, 1))
-    state_deriv_matrix[:6, :] = numpy.Matrix([[state.vx],
+    state_deriv_matrix = numpy.array((9, 1))
+    state_deriv_matrix[:6, :] = numpy.array([[state.vx],
                                        [state.vy],
                                        [state.vz],
                                        [state.rotational_velocity_yaw],
                                        [state.rotational_velocity_pitch],
                                        [state.rotational_velocity_roll]])
-    state_deriv_matrix[6:, :] = numpy.Matrix(state.joint_velocities).transpose()
+    state_deriv_matrix[6:, :] = numpy.array(state.joint_velocities).transpose()
 
     u_mu = M_p_phi_transpose*position_controls + M_phi_phi*rotational_control + M_phi_q*joint_control_estimate + \
            coriolis_matrix * state_deriv_matrix + g_phi

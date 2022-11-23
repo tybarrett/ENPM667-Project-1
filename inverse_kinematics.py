@@ -9,12 +9,12 @@ import math
 
 def generate_controllable_variable_accelerations(state, end_effector_position, desired_ee_position,
                                                  desired_ee_rotation, desired_ee_velocity, desired_ee_accel):
-    controlled_vars_deriv = numpy.Matrix((9, 1))
-    controlled_vars_deriv[0:4, :] = numpy.Matrix([[state.vx], [state.vy], [state.vz], [state.rotational_velocity_yaw]])
-    controlled_vars_deriv[4:, :] = numpy.Matrix(state.joint_velocities).transpose()
+    controlled_vars_deriv = numpy.array((9, 1))
+    controlled_vars_deriv[0:4, :] = numpy.array([[state.vx], [state.vy], [state.vz], [state.rotational_velocity_yaw]])
+    controlled_vars_deriv[4:, :] = numpy.array(state.joint_velocities).transpose()
 
-    uncontrolled_vars_deriv = numpy.Matrix([[state.rotational_velocity_pitch], [state.rotational_velocity_roll]])
-    uncontrolled_vars_accel = numpy.Matrix([[state.rot_accel_pitch], [state.rot_accel_roll]])
+    uncontrolled_vars_deriv = numpy.array([[state.rotational_velocity_pitch], [state.rotational_velocity_roll]])
+    uncontrolled_vars_accel = numpy.array([[state.rot_accel_pitch], [state.rot_accel_roll]])
 
     # The jacobian of controllable variables
     controllable_jac = jacobian.get_jacobian_of_controllable_variables(state.joint_positions, state, end_effector_position)
@@ -38,7 +38,7 @@ def generate_controllable_variable_accelerations(state, end_effector_position, d
 
 
 def _calculate_ee_error(desired_ee_position, state, desired_ee_rotation):
-    e = numpy.Matrix((6, 1))
+    e = numpy.array((6, 1))
     e[0:3, :] = desired_ee_position - state.get_current_ee_position()
 
     mutual_orientation_matrix = desired_ee_rotation.transpose() * state.get_current_ee_rotation()
@@ -58,6 +58,6 @@ def _calculate_ee_error(desired_ee_position, state, desired_ee_rotation):
     qy /= normalize_factor
     qz /= normalize_factor
 
-    e[3:6, :] = desired_ee_position * numpy.Matrix([[qx], [qy], [qz]])
+    e[3:6, :] = desired_ee_position * numpy.array([[qx], [qy], [qz]])
 
     return e
