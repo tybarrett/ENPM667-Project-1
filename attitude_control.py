@@ -21,7 +21,8 @@ def generate_attitude_control_input_estimates(desired_roll,
     return pitch_control_estimate, roll_control_estimate
 
 
-def calculate_vehicle_torques(inertia_matrix, position_controls, rotational_control, joint_control_estimate, g, state):
+def calculate_vehicle_torques(inertia_matrix, position_controls, rotational_control, joint_control_estimate, g,
+                              coriolis_matrix, state):
 
     M_p_phi_transpose = inertia_matrix[3:6, 0:3]
     M_phi_phi = inertia_matrix[3:6, 3:6]
@@ -29,8 +30,17 @@ def calculate_vehicle_torques(inertia_matrix, position_controls, rotational_cont
 
     g_phi = g[3:6, :]
 
-    u_mu = M_p_phi_transpose*position_controls + M_phi_phi*rotational_control + M_phi_q*joint_control_estimate + g_phi
-    # TODO - include the C matrix in the above equation (as seen in equation 30)
+    state_deriv_matrix = numpy.Matrix((9, 1))
+    state_deriv_matrix[:6, :] = numpy.Matrix([[state.vx],
+                                       [state.vy],
+                                       [state.vz],
+                                       [state.rotational_velocity_yaw],
+                                       [state.rotational_velocity_pitch],
+                                       [state.rotational_velocity_roll]])
+    state_deriv_matrix[6:, :] = numpy.Matrix(state.joint_velocities).transpose()
+
+    u_mu = M_p_phi_transpose*position_controls + M_phi_phi*rotational_control + M_phi_q*joint_control_estimate + \
+           coriolis_matrix * state_deriv_matrix + g_phi
 
     rotation_matrix = transformation_matrices.get_instantaneous_rotation_matrix(state)
     euler_deriv_to_angular_vel_transform = transformation_matrices.get_angular_velocity_transformation_matrix(state)

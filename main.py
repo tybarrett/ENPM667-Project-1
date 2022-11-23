@@ -11,6 +11,7 @@ import attitude_control
 import motion_control
 import dynamics
 import manipulator_control
+import system_emulator
 
 
 TIME_RESOLUTION_S = 1 / 250
@@ -38,17 +39,17 @@ def main():
                                                                                                  pitch, pitch_deriv,
                                                                                                  state)
 
-        rotational_control_input = numpy.Matrix([[yaw_control_input], [0], [0]])
-        attitude_control.calculate_vehicle_torques(inertia_matrix, pos_control_input, rotational_control_input,
-                                                   joint_control_estimate, g, state)
+        rotational_control_input = numpy.Matrix([[yaw_control_input], [pitch_control], [roll_control]])
+        vehicle_torques = attitude_control.calculate_vehicle_torques(inertia_matrix, pos_control_input, rotational_control_input,
+                                                   joint_control_estimate, g, coriolis_matrix, state)
 
         quad_motor_forces = dynamics.create_motor_forces_from_desired_torque_and_thrust(vehicle_torques, thrust)
 
         manipulator_control.calculate_joint_forces(inertia_matrix, pos_control_input, rotational_control_input,
                                                    link_control_input, coriolis_matrix, g, state)
 
-        # new_state = system_emulator.apply_system_inputs(TIME_RESOLUTION_S) # TODO
-
+        new_state = system_emulator.apply_system_inputs(TIME_RESOLUTION_S, state, pos_control_input,
+                                                        rotational_control_input, link_control_input)
 
         t += TIME_RESOLUTION_S
 
