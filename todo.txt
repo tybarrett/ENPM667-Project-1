@@ -5,12 +5,13 @@
   + "Quadrotor Attitude Controller"
 + determine roll and pitch from desired position control
   + "Quadrotor position controller"
-- conduct inverse kinematics
++ conduct inverse kinematics
+  - find the derivative of the controlled and uncontrolled jacobians
 + determine manipulator link torques from the controlled variables
 - calculate inertia matrix
 - calculate gravity matrix
 - calculate coriolis matrix
-- make "system state" class
++ make "system state" class
 - feed the drone state back into the following modules:
   - Quadrotor position controller
   - Quadrotor attitude controller
