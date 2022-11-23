@@ -26,12 +26,19 @@ def main():
     while t <= END_TIME_S:
         print(t)
 
-        desired_pos, desired_vel, desired_accel = reference_trajectory.generate_reference_trajectory(t)
+        desired_pos, desired_vel, desired_accel, desired_rot = reference_trajectory.generate_reference_trajectory(t)
         ee_position = transformation_matrices.get_ee_position(state)
         controllable_vars = inverse_kinematics.generate_controllable_variable_accelerations(state, ee_position, desired_pos,
                                                                         desired_rot, desired_vel, desired_accel)
 
-        pos_control_input, yaw_control_input, link_control_input = motion_control.calculate_control_inputs(controllable_vars, state)
+        pos_control_input, yaw_control_input, link_control_input = motion_control.calculate_control_inputs(controllable_vars,
+                                                                                                           state,
+                                                                                                           desired_yaw,
+                                                                                                           desired_vel_yaw,
+                                                                                                           desired_link_position,
+                                                                                                           desired_link_velocities,
+                                                                                                           desired_pos,
+                                                                                                           desired_vel)
 
         thrust, pitch, roll = position_control.calculate_thrust_and_reference_angles(state, controllable_vars, gravity, inertia_matrix)
 
@@ -41,7 +48,7 @@ def main():
 
         rotational_control_input = numpy.Matrix([[yaw_control_input], [pitch_control], [roll_control]])
         vehicle_torques = attitude_control.calculate_vehicle_torques(inertia_matrix, pos_control_input, rotational_control_input,
-                                                   joint_control_estimate, g, coriolis_matrix, state)
+                                                   link_control_input, g, coriolis_matrix, state)
 
         quad_motor_forces = dynamics.create_motor_forces_from_desired_torque_and_thrust(vehicle_torques, thrust)
 

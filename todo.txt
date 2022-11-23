@@ -28,4 +28,6 @@
 + emulate vehicle motion (in response to our provided input)
 - debug
   - we only really need to verify that the EE follows the desired path
-- finish motion_control.calculate_control_inputs
+
++ finish motion_control.calculate_control_inputs
+- plot desired path vs actual path using matplotlib

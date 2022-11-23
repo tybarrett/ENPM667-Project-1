@@ -22,8 +22,9 @@ def generate_reference_trajectory(time_value):
         desired_accel = [sympy.diff(x_position, t, 2).subs([t, time_value]),
                          sympy.diff(y_position, t, 2).subs([t, time_value]),
                          sympy.diff(z_position, t, 2).subs([t, time_value])]
-        return desired_position, desired_velocity, desired_accel
+        desired_rotation = [(math.pi/5) / 60, (math.pi/5) / 60, (math.pi/5) / 60]
+        return desired_position, desired_velocity, desired_accel, desired_rotation
 
     else:
         null_matrix = numpy.zeros((3, 1))
-        return null_matrix, null_matrix, null_matrix
+        return null_matrix, null_matrix, null_matrix, null_matrix
