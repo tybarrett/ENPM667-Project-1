@@ -51,6 +51,8 @@ def main():
         new_state = system_emulator.apply_system_inputs(TIME_RESOLUTION_S, state, pos_control_input,
                                                         rotational_control_input, link_control_input)
 
+        state = new_state
+
         t += TIME_RESOLUTION_S
 
 
