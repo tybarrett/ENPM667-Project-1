@@ -6,14 +6,14 @@ import sympy
 import transformation_matrices
 
 
-q1, q2, q3, q4, q5 = sympy.symbols("q1, q2, q3, q4, q5")
-GENERIC_JACOBIAN = sympy.Matrix((6, 5)) # TODO - create this based on properties of the arm
+q1, q2, q3, q4, q5, t = sympy.symbols("q1, q2, q3, q4, q5, t")
+GENERIC_JACOBIAN = sympy.Matrix((6, 5))
 
 # D-H parameters for manipulator arm, from Arleo et al: Control of Quadrotor Aerial Vehicles Equipped with a Robotic Arm
 THETAS = [q1, q2, q3, q4, q5]
-DS = [0, 0, 0, 0, 18]
+DS = [0, 0, 0, 0, .18]
 ALPHAS = [-numpy.pi/2, numpy.pi/2, 0, -numpy.pi/2, 0]
-AS = [0, 150, 80, 0, 0]
+AS = [0, .150, .80, 0, 0]
 
 
 def _generate_skew_matrix(a):
@@ -158,7 +158,7 @@ def generate_generic_jacobian(ts):
     j5[0:3, 0] = ts[3][0:3, 2].cross(ts[-1][0:3, 3] - ts[3][0:3, 3])
     j5[3:6, 0] = ts[3][0:3, 2]
 
-    GENERIC_JACOBIAN = sympy.zeros(6, 6)
+    GENERIC_JACOBIAN = sympy.zeros(6, 5)
     GENERIC_JACOBIAN[:, 0] = j1
     GENERIC_JACOBIAN[:, 1] = j2
     GENERIC_JACOBIAN[:, 2] = j3
@@ -178,23 +178,55 @@ def get_current_jacobian(joint_positions):
 def get_jacobian_of_controllable_variables(arm_state, state, end_effector_position):
 
     rotation_matrix = transformation_matrices.get_instantaneous_rotation_matrix(state)
-    j_eb = numpy.zeros(6)
-    j_eb[0:3, 0:3] = rotation_matrix
-    j_eb[3:6, 3:6] = rotation_matrix
-    instantaneous_jacobian = GENERIC_JACOBIAN.subs([(q1, arm_state.q1),
-                                                    (q2, arm_state.q2),
-                                                    (q3, arm_state.q3),
-                                                    (q4, arm_state.q4),
-                                                    (q5, arm_state.q5)])
-    j_eb = j_eb * instantaneous_jacobian
+    rot_matrix = numpy.zeros((6, 6))
+    rot_matrix[0:3, 0:3] = rotation_matrix
+    rot_matrix[3:6, 3:6] = rotation_matrix
+    instantaneous_jacobian = GENERIC_JACOBIAN.subs([(q1, arm_state[0]),
+                                                    (q2, arm_state[1]),
+                                                    (q3, arm_state[2]),
+                                                    (q4, arm_state[3]),
+                                                    (q5, arm_state[4])])
+    j_eb = rot_matrix * instantaneous_jacobian
 
     j_b = numpy.eye(6)
     rotation_matrix = transformation_matrices.get_instantaneous_rotation_matrix(state)
     skew_matrix = _generate_skew_matrix(rotation_matrix * end_effector_position)
     j_b[0:3, 3:6] = -1 * skew_matrix
-    j_n = (j_b * transformation_matrices.get_angular_velocity_transformation_matrix(state))[:, 0:4]
+    t_a = numpy.eye(6)
+    t_a[3:6, 3:6] = transformation_matrices.get_angular_velocity_transformation_matrix(state)
+    j_n = (j_b * t_a)[:, 0:4]
 
-    controllable_jacobian = numpy.array((6, 9))
+    controllable_jacobian = numpy.ndarray((6, 9))
+    controllable_jacobian[:, 0:4] = j_n
+    controllable_jacobian[:, 4:] = j_eb
+
+    return controllable_jacobian
+
+
+def get_deriv_of_controlled_jacobian(arm_state, arm_vels, state, end_effector_position):
+    rotation_matrix = transformation_matrices.get_instantaneous_rotation_matrix(state)
+    j_eb = numpy.zeros((6, 6))
+    j_eb[0:3, 0:3] = rotation_matrix
+    j_eb[3:6, 3:6] = rotation_matrix
+    jacobian_in_terms_of_t = GENERIC_JACOBIAN.subs([(q1, arm_state[0] + arm_vels[0] * t),
+                                                    (q2, arm_state[1] + arm_vels[1] * t),
+                                                    (q3, arm_state[2] + arm_vels[2] * t),
+                                                    (q4, arm_state[3] + arm_vels[3] * t),
+                                                    (q5, arm_state[4] + arm_vels[4] * t)])
+    deriv_of_jacobian = sympy.diff(jacobian_in_terms_of_t, t)
+    instantaneous_jacobian = deriv_of_jacobian.subs([(t, 0)])
+    j_eb = j_eb * instantaneous_jacobian
+
+    # TODO - how do we properly differentiate j_n?
+    j_b = numpy.eye(6)
+    rotation_matrix = transformation_matrices.get_instantaneous_rotation_matrix(state)
+    skew_matrix = _generate_skew_matrix(rotation_matrix * end_effector_position)
+    j_b[0:3, 3:6] = -1 * skew_matrix
+    t_a = numpy.eye(6)
+    t_a[3:6, 3:6] = transformation_matrices.get_angular_velocity_transformation_matrix(state)
+    j_n = (j_b * t_a)[:, 0:4]
+
+    controllable_jacobian = numpy.ndarray((6, 9))
     controllable_jacobian[:, 0:4] = j_n
     controllable_jacobian[:, 4:] = j_eb
 
@@ -207,12 +239,18 @@ def get_jacobian_of_uncontrolled_variables(state, end_effector_position):
     j_b = numpy.eye(6)
     skew_matrix = _generate_skew_matrix(rotation_matrix * end_effector_position)
     j_b[0:3, 3:6] = -1 * skew_matrix
-    j_b_t_a = j_b * transformation_matrices.get_angular_velocity_transformation_matrix(state)
+    t_a = numpy.eye(6)
+    t_a[3:6, 3:6] = transformation_matrices.get_angular_velocity_transformation_matrix(state)
+    j_b_t_a = j_b * t_a
 
-    uncontrollable_jacobian = numpy.array((6, 2))
+    uncontrollable_jacobian = numpy.ndarray((6, 2))
     uncontrollable_jacobian[:, :] = j_b_t_a[:, -2:]
 
     return uncontrollable_jacobian
+
+
+def get_derivative_of_uncontrolled_jacobian(state, end_effector_position):
+    pass
 
 
 T0_n = transformation_matrix(AS, ALPHAS, DS, THETAS)

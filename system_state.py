@@ -12,7 +12,7 @@ class SystemState:
         self.pitch = 0
         self.roll = 0
 
-        self.joint_positions = []
+        self.joint_positions = [0, 0, 0, 0, 0]
 
         # First derivative
         self.vx = 0
@@ -21,7 +21,7 @@ class SystemState:
         self.rotational_velocity_yaw = 0
         self.rotational_velocity_pitch = 0
         self.rotational_velocity_roll = 0
-        self.joint_velocities = []
+        self.joint_velocities = [0, 0, 0, 0, 0]
 
         # Second derivative
         self.ax = 0
@@ -30,8 +30,8 @@ class SystemState:
         self.rot_accel_yaw = 0
         self.rot_accel_pitch = 0
         self.rot_accel_roll = 0
-        self.joint_accelerations = []
+        self.joint_accelerations = [0, 0, 0, 0, 0]
 
 
-    def populate_derivative_from_history(self):
-        pass # TODO
+    def __str__(self):
+        return str([self.body_x, self.body_y, self.body_z, self.yaw, self.pitch, self.roll, self.joint_positions, self.vx, self.vy, self.vz, self.rotational_velocity_yaw, self.rotational_velocity_pitch, self.rotational_velocity_roll, self.joint_velocities, self.ax, self.ay, self.az, self.rot_accel_yaw, self.rot_accel_pitch, self.rot_accel_roll, self.joint_accelerations])

@@ -1,6 +1,7 @@
 """system_emulator.py - Emulates the system given the provided inputs and returns the new state after the
 specified time step. Artificial noise is introduced when the new state is generated."""
 
+import math
 import system_state
 
 
@@ -20,12 +21,15 @@ def apply_system_inputs(time_step, old_state, pos_control, rotation_control, lin
     new_state.body_z = old_state.body_z + old_state.vz * time_step
 
     new_state.yaw = old_state.yaw + old_state.rotational_velocity_yaw * time_step
+    new_state.yaw = new_state.yaw % math.pi*2
     new_state.pitch = old_state.pitch + old_state.rotational_velocity_pitch * time_step
+    new_state.pitch = new_state.pitch % math.pi*2
     new_state.roll = old_state.roll + old_state.rotational_velocity_roll * time_step
+    new_state.roll = new_state.roll % math.pi*2
 
     for i in range(len(old_state.joint_positions)):
         new_pos = old_state.joint_positions[i] + old_state.joint_velocities[i] * time_step
-        new_state.joint_positions.append(new_pos)
+        new_state.joint_positions[i] = new_pos
 
     new_state.vx = old_state.vx + h(old_state.ax, pos_control[0, 0]) * time_step
     new_state.vy = old_state.vy + h(old_state.ay, pos_control[1, 0]) * time_step
@@ -37,7 +41,7 @@ def apply_system_inputs(time_step, old_state, pos_control, rotation_control, lin
 
     for i in range(len(old_state.joint_velocities)):
         new_vel = old_state.joint_velocities[i] + h(old_state.joint_accelerations[i], link_control[i, 0]) * time_step
-        new_state.joint_velocities.append(new_vel)
+        new_state.joint_velocities[i] = new_vel
 
     new_state.ax = h(old_state.ax, pos_control[0, 0])
     new_state.ay = h(old_state.ay, pos_control[1, 0])
@@ -49,6 +53,6 @@ def apply_system_inputs(time_step, old_state, pos_control, rotation_control, lin
 
     for i in range(len(old_state.joint_accelerations)):
         new_acc = h(old_state.joint_accelerations[i], link_control[i, 0])
-        new_state.joint_accelerations.append(new_acc)
+        new_state.joint_accelerations[i] = new_acc
 
     return new_state
