@@ -43,6 +43,13 @@ def main():
             controllable_vars[1, 0] /= acc_norm
             controllable_vars[2, 0] /= acc_norm
 
+            # Normalize arm commands
+            joint_norm = 0
+            for i in range(len(state.joint_positions)):
+                joint_norm += controllable_vars[4+i, 0]**2
+            joint_norm = 2 * math.sqrt(joint_norm)
+            for i in range(len(state.joint_positions)):
+                controllable_vars[4+i, 0] /= joint_norm
 
             print("Controllable accelerations: " + str(controllable_vars))
 

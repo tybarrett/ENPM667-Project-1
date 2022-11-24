@@ -29,6 +29,7 @@ def apply_system_inputs(time_step, old_state, pos_control, rotation_control, lin
 
     for i in range(len(old_state.joint_positions)):
         new_pos = old_state.joint_positions[i] + old_state.joint_velocities[i] * time_step
+        new_pos = new_pos % math.pi*2
         new_state.joint_positions[i] = new_pos
 
     new_state.vx = old_state.vx + h(old_state.ax, pos_control[0, 0]) * time_step
