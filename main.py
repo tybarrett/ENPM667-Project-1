@@ -112,12 +112,13 @@ def main():
                                                                                                      state)
 
             rotational_control_input = numpy.array([[yaw_control_input], [pitch_control], [roll_control]])
-            rotational_control_input = numpy.array([[yaw_control_input], [0], [0]])
+            # rotational_control_input = numpy.array([[yaw_control_input], [0], [0]])
             vehicle_torques = attitude_control.calculate_vehicle_torques(dyn.get_inertial_matrix(), pos_control_input,
                                                                          rotational_control_input,
                                                                          link_control_input, dyn.get_gravity_matrix(),
                                                                          dyn.get_coriolis_matrix(), state)
 
+            vehicle_torques = numpy.array([[vehicle_torques[0, 2]], [vehicle_torques[1, 1]], [vehicle_torques[0, 2]]])
             quad_motor_forces = dynamics.create_motor_forces_from_desired_torque_and_thrust(vehicle_torques, thrust)
 
             manipulator_control.calculate_joint_forces(dyn.get_inertial_matrix(), pos_control_input,

@@ -4,7 +4,7 @@ from mpl_toolkits import mplot3d
 import numpy
 import matplotlib.pyplot as plt
 
-figure = plt.figure()
+figure, axis = plt.subplots(2, 1)
 axes = plt.axes(projection="3d")
 axes.set_xlabel("X")
 axes.set_ylabel("Y")
@@ -19,3 +19,12 @@ def plot_actual_point(point):
 
 def show_plot():
     plt.show()
+
+def plot_pos_error(error, t):
+    axis[0].scatter(t, error, c="blue", s=2)
+    axis[0].set_title("Positional Error")
+
+
+def plot_rot_error(error, t):
+    axis[1].scatter(t, error, c="blue", s=2)
+    axis[1].set_title("Rotational Error")

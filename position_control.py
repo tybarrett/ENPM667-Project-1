@@ -5,6 +5,7 @@ import numpy
 
 def calculate_thrust_and_reference_angles(state, controllable_vars_input, gravity, inertia_matrix, coriolis_matrix):
 
+    controllable_vars_input = numpy.array(controllable_vars_input.tolist()).astype(numpy.float64)
     m_p_p = inertia_matrix[0:3, 0:3]
     m_p_phi = inertia_matrix[0:3, 3:6]
     m_p_phi = m_p_phi[:, 0]
@@ -19,7 +20,7 @@ def calculate_thrust_and_reference_angles(state, controllable_vars_input, gravit
                               + [[x] for x in state.joint_velocities])
 
     # TODO - integrate disturbances (d-hat) into this equation too
-    u_f = m_p_p * position_control + m_p_phi * yaw_control + m_p_q * manipulator_link_control + coriolis_matrix * state_deriv + gravity
+    u_f = numpy.dot(m_p_p, position_control) + m_p_phi * yaw_control + numpy.dot(m_p_q, manipulator_link_control) + numpy.dot(coriolis_matrix, state_deriv)[:3, :] + gravity[:3, :]
 
     thrust = numpy.linalg.norm(u_f)
 

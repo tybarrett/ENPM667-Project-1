@@ -26,21 +26,23 @@ def calculate_vehicle_torques(inertia_matrix, position_controls, rotational_cont
 
     M_p_phi_transpose = inertia_matrix[3:6, 0:3]
     M_phi_phi = inertia_matrix[3:6, 3:6]
-    M_phi_q = inertia_matrix[6:, 3:6]
+    M_phi_q = inertia_matrix[3:6, 6:]
 
     g_phi = g[3:6, :]
 
-    state_deriv_matrix = numpy.array((9, 1))
+    state_deriv_matrix = numpy.ndarray((11, 1))
     state_deriv_matrix[:6, :] = numpy.array([[state.vx],
                                        [state.vy],
                                        [state.vz],
                                        [state.rotational_velocity_yaw],
                                        [state.rotational_velocity_pitch],
                                        [state.rotational_velocity_roll]])
-    state_deriv_matrix[6:, :] = numpy.array(state.joint_velocities).transpose()
+    state_deriv_matrix[6:, :] = numpy.array([[x] for x in state.joint_velocities])
 
-    u_mu = M_p_phi_transpose*position_controls + M_phi_phi*rotational_control + M_phi_q*joint_control_estimate + \
-           coriolis_matrix * state_deriv_matrix + g_phi
+    position_controls = numpy.array(position_controls.tolist()).astype(numpy.float64)
+    joint_control_estimate = numpy.array(joint_control_estimate.tolist()).astype(numpy.float64)
+    u_mu = M_p_phi_transpose*position_controls + M_phi_phi*rotational_control + numpy.dot(M_phi_q, joint_control_estimate) + \
+           coriolis_matrix[3:6, 3:6] * state_deriv_matrix[3:6, :] + g_phi
 
     rotation_matrix = transformation_matrices.get_instantaneous_rotation_matrix(state)
     euler_deriv_to_angular_vel_transform = transformation_matrices.get_angular_velocity_transformation_matrix(state)

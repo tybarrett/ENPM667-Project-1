@@ -99,6 +99,13 @@ def main():
             # manipulator_control.calculate_joint_forces(inertia_matrix, pos_control_input, rotational_control_input,
             #                                            link_control_input, coriolis_matrix, g, state)
 
+            e = inverse_kinematics._calculate_ee_error(desired_pos, state, desired_rot)
+            pos_error = math.sqrt(e[0, 0]**2 + e[1, 0]**2 + e[2, 0]**2)
+            rot_error = math.sqrt(e[3, 0]**2 + e[4, 0]**2 + e[5, 0]**2)
+
+            visualization.plot_pos_error(pos_error, t)
+            visualization.plot_rot_error(rot_error, t)
+
             pos_acceleration = controllable_vars[:3, :]
             rot_acceleration = numpy.array([[controllable_vars[3, 0]], [0], [0]])
             link_acceleration = controllable_vars[4:, :]
