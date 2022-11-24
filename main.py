@@ -15,7 +15,7 @@ import system_emulator
 import visualization
 
 MAX_ACC = 3
-TIME_RESOLUTION_S = 1 / 25 #1 / 250
+TIME_RESOLUTION_S = 1 / 10 #1 / 250
 END_TIME_S = 60
 
 
@@ -39,17 +39,19 @@ def main():
             y_acc = controllable_vars[1, 0]
             z_acc = controllable_vars[2, 0]
             acc_norm = MAX_ACC * math.sqrt(x_acc**2 + y_acc**2 + z_acc**2)
-            controllable_vars[0, 0] /= acc_norm
-            controllable_vars[1, 0] /= acc_norm
-            controllable_vars[2, 0] /= acc_norm
+            if acc_norm != 0:
+                controllable_vars[0, 0] /= acc_norm
+                controllable_vars[1, 0] /= acc_norm
+                controllable_vars[2, 0] /= acc_norm
 
             # Normalize arm commands
             joint_norm = 0
             for i in range(len(state.joint_positions)):
                 joint_norm += controllable_vars[4+i, 0]**2
             joint_norm = 2 * math.sqrt(joint_norm)
-            for i in range(len(state.joint_positions)):
-                controllable_vars[4+i, 0] /= joint_norm
+            if joint_norm != 0:
+                for i in range(len(state.joint_positions)):
+                    controllable_vars[4+i, 0] /= joint_norm
 
             print("Controllable accelerations: " + str(controllable_vars))
 
