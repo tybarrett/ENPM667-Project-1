@@ -24,6 +24,9 @@ def main():
 
     state = system_state.SystemState()
 
+    pitch_reference_angles = []
+    roll_reference_angles = []
+
     t = 0
     while t <= END_TIME_S:
         print(t)
@@ -85,6 +88,24 @@ def main():
             thrust, pitch, roll = position_control.calculate_thrust_and_reference_angles(state, controllable_vars, dyn.get_gravity_matrix(),
                                                                                          dyn.get_inertial_matrix(),
                                                                                          dyn.get_coriolis_matrix())
+
+            # Calculate the derivative of the roll and pitch reference angles over time
+            roll_reference_angles.append(roll)
+            pitch_reference_angles.append(pitch)
+            num_samples_to_check = math.ceil(0.3 / TIME_RESOLUTION_S)
+            if len(roll_reference_angles) < num_samples_to_check:
+                first_sample = roll_reference_angles[0]
+            else:
+                first_sample = roll_reference_angles[-num_samples_to_check]
+            roll_deriv = (first_sample - roll) / 0.3
+
+            if len(pitch_reference_angles) < num_samples_to_check:
+                first_sample = pitch_reference_angles[0]
+            else:
+                first_sample = pitch_reference_angles[-num_samples_to_check]
+            pitch_deriv = (first_sample - pitch) / 0.3
+
+
 
             pitch_control, roll_control = attitude_control.generate_attitude_control_input_estimates(roll, roll_deriv,
                                                                                                      pitch, pitch_deriv,

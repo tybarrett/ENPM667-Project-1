@@ -15,6 +15,7 @@ def get_inertial_matrix():
     M[:3, :3] = BODY_MASS * numpy.eye(3)
     M[3:6, 3:6] = numpy.diag([1.24, 1.24, 2.48])
     # M[6:, 6:] # For now, assume the arm links to have no inertia.
+    return M
 
 
 def get_coriolis_matrix():
