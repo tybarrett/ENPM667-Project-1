@@ -76,9 +76,10 @@ def _calculate_ee_error(desired_ee_position, state, desired_ee_rotation):
     qz = numpy.cos(roll / 2) * numpy.cos(pitch / 2) * numpy.sin(yaw / 2) - numpy.sin(roll / 2) * numpy.sin(
         pitch / 2) * numpy.cos(yaw / 2)
     normalize_factor = math.sqrt(qx**2 + qy**2 + qz**2)
-    qx /= normalize_factor
-    qy /= normalize_factor
-    qz /= normalize_factor
+    if normalize_factor != 0:
+        qx /= normalize_factor
+        qy /= normalize_factor
+        qz /= normalize_factor
 
     e[3:6, :] = desired_ee_position * numpy.array([[qx], [qy], [qz]])
 

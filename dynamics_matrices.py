@@ -23,7 +23,7 @@ def get_coriolis_matrix():
 
 
 link_weights_grams = [80, 10, 6, 2, 1.5]
-def get_gravity_matrix(state):
+def get_gravity_matrix():
     g = numpy.ndarray((11, 1))
     g[2, 0] = GRAVITY_MS2
 

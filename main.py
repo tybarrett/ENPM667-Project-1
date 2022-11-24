@@ -13,6 +13,7 @@ import dynamics
 import manipulator_control
 import system_emulator
 import visualization
+import dynamics_matrices as dyn
 
 MAX_ACC = 3
 TIME_RESOLUTION_S = 1 / 10 #1 / 250
@@ -56,47 +57,51 @@ def main():
             print("Controllable accelerations: " + str(controllable_vars))
 
             # Integrate reference yaw acceleration to get desired yaw_vel and yaw
-            # desired_yaw_accel = controllable_vars[4, 0]
-            # desired_yaw_vel = state.rotational_velocity_yaw + desired_yaw_accel * TIME_RESOLUTION_S
-            # desired_yaw = state.yaw + desired_yaw_vel * TIME_RESOLUTION_S
-            #
-            # # Do the same with each manipulator link
-            # desired_link_positions = []
-            # desired_link_vels = []
-            # for i in range(len(state.joint_positions)):
-            #     desired_link_accel = controllable_vars[4+i, 0]
-            #     desired_link_vel = state.joint_velocities[i] + desired_link_accel * TIME_RESOLUTION_S
-            #     desired_link_position = state.joint_positions[i] + desired_link_vel * TIME_RESOLUTION_S
-            #     desired_link_positions.append([desired_link_position])
-            #     desired_link_vels.append([desired_link_vel])
-            # desired_link_vels = numpy.array(desired_link_vels)
-            # desired_link_positions = numpy.array(desired_link_positions)
+            desired_yaw_accel = controllable_vars[4, 0]
+            desired_yaw_vel = state.rotational_velocity_yaw + desired_yaw_accel * TIME_RESOLUTION_S
+            desired_yaw = state.yaw + desired_yaw_vel * TIME_RESOLUTION_S
 
-            # pos_control_input, yaw_control_input, link_control_input = motion_control.calculate_control_inputs(controllable_vars,
-            #                                                                                                    state,
-            #                                                                                                    desired_yaw,
-            #                                                                                                    desired_yaw_vel,
-            #                                                                                                    desired_link_positions,
-            #                                                                                                    desired_link_vels,
-            #                                                                                                    desired_pos,
-            #                                                                                                    desired_vel)
+            # Do the same with each manipulator link
+            desired_link_positions = []
+            desired_link_vels = []
+            for i in range(len(state.joint_positions)):
+                desired_link_accel = controllable_vars[4+i, 0]
+                desired_link_vel = state.joint_velocities[i] + desired_link_accel * TIME_RESOLUTION_S
+                desired_link_position = state.joint_positions[i] + desired_link_vel * TIME_RESOLUTION_S
+                desired_link_positions.append([desired_link_position])
+                desired_link_vels.append([desired_link_vel])
+            desired_link_vels = numpy.array(desired_link_vels)
+            desired_link_positions = numpy.array(desired_link_positions)
 
-            # thrust, pitch, roll = position_control.calculate_thrust_and_reference_angles(state, controllable_vars, gravity,
-            #                                                            p                  inertia_matrix, coriolis_matrix)
-            #
-            # pitch_control, roll_control = attitude_control.generate_attitude_control_input_estimates(roll, roll_deriv,
-            #                                                                                          pitch, pitch_deriv,
-            #                                                                                          state)
-            #
-            # rotational_control_input = numpy.array([[yaw_control_input], [pitch_control], [roll_control]])
-            # rotational_control_input = numpy.array([[yaw_control_input], [0], [0]])
-            # vehicle_torques = attitude_control.calculate_vehicle_torques(inertia_matrix, pos_control_input, rotational_control_input,
-            #                                            link_control_input, g, coriolis_matrix, state)
-            #
-            # quad_motor_forces = dynamics.create_motor_forces_from_desired_torque_and_thrust(vehicle_torques, thrust)
-            #
-            # manipulator_control.calculate_joint_forces(inertia_matrix, pos_control_input, rotational_control_input,
-            #                                            link_control_input, coriolis_matrix, g, state)
+            pos_control_input, yaw_control_input, link_control_input = motion_control.calculate_control_inputs(controllable_vars,
+                                                                                                               state,
+                                                                                                               desired_yaw,
+                                                                                                               desired_yaw_vel,
+                                                                                                               desired_link_positions,
+                                                                                                               desired_link_vels,
+                                                                                                               desired_pos,
+                                                                                                               desired_vel)
+
+            thrust, pitch, roll = position_control.calculate_thrust_and_reference_angles(state, controllable_vars, dyn.get_gravity_matrix(),
+                                                                                         dyn.get_inertial_matrix(),
+                                                                                         dyn.get_coriolis_matrix())
+
+            pitch_control, roll_control = attitude_control.generate_attitude_control_input_estimates(roll, roll_deriv,
+                                                                                                     pitch, pitch_deriv,
+                                                                                                     state)
+
+            rotational_control_input = numpy.array([[yaw_control_input], [pitch_control], [roll_control]])
+            rotational_control_input = numpy.array([[yaw_control_input], [0], [0]])
+            vehicle_torques = attitude_control.calculate_vehicle_torques(dyn.get_inertial_matrix(), pos_control_input,
+                                                                         rotational_control_input,
+                                                                         link_control_input, dyn.get_gravity_matrix(),
+                                                                         dyn.get_coriolis_matrix(), state)
+
+            quad_motor_forces = dynamics.create_motor_forces_from_desired_torque_and_thrust(vehicle_torques, thrust)
+
+            manipulator_control.calculate_joint_forces(dyn.get_inertial_matrix(), pos_control_input,
+                                                       rotational_control_input, link_control_input,
+                                                       dyn.get_coriolis_matrix(), dyn.get_gravity_matrix(), state)
 
             pos_acceleration = controllable_vars[:3, :]
             rot_acceleration = numpy.array([[controllable_vars[3, 0]], [0], [0]])
